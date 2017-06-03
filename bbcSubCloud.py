@@ -19,7 +19,7 @@ def camelCase(st):
     output = ''.join(x for x in st.title() if x.isalnum())
     return output[0].lower() + output[1:]
 
-filteredWords = ['LAUGHTER','APPLAUSE']
+filteredWords = ['LAUGHTER','APPLAUSE','will','want','think','said']
 
 text = ''
 
@@ -38,7 +38,6 @@ info = urllib.urlopen(progUrl).read()
 infoObj = json.loads(info)
 
 title = infoObj[u'programme'][u'title']
-#infoTree.findall('.//display_title/title')[0].text + ' : ' + infoTree.findall('.//display_title/subtitle')[0].text
 
 print 'Creating Word Cloud For ' + title
 
