@@ -12,6 +12,7 @@ from BeautifulSoup import BeautifulSoup as Soup
 from soupselect import select
 import urllib
 import sys
+import json
 import xml.etree.ElementTree as ET
 
 def camelCase(st):
@@ -30,20 +31,21 @@ pid = sys.argv[1]
 
 #Construct the iplayer url
 
-progUrl = 'http://www.bbc.co.uk/programmes/'+ pid +'.xml'
+progUrl = 'http://www.bbc.co.uk/programmes/'+ pid +'.json'
 
 info = urllib.urlopen(progUrl).read()
 
-infoTree = ET.fromstring(info)
+infoObj = json.loads(info)
 
-title = infoTree.findall('.//display_title/title')[0].text + ' : ' + infoTree.findall('.//display_title/subtitle')[0].text
+title = infoObj[u'programme'][u'title']
+#infoTree.findall('.//display_title/title')[0].text + ' : ' + infoTree.findall('.//display_title/subtitle')[0].text
 
 print 'Creating Word Cloud For ' + title
 
 camelTitle = camelCase(title)
 
-for element in infoTree.findall('.//versions/version/pid') :
-    pidText = element.text
+for version in infoObj[u'programme'][u'versions'] :
+    pidText = version[u'pid']
     pidUrl = 'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/' + pidText + '/proto/rtmp?cb=5'
     extraInfo = urllib.urlopen(pidUrl).read()
     extraTree = ET.fromstring(extraInfo)
