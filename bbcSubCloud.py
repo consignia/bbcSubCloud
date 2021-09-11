@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 """
 BBC Sub Cloud
 ========
@@ -8,8 +8,7 @@ Make Word Clouds from BBC Subtitles
 
 #from os import path
 from wordcloud import WordCloud
-from BeautifulSoup import BeautifulSoup as Soup
-from soupselect import select
+from bs4 import BeautifulSoup as Soup
 import urllib
 import sys
 import json
@@ -33,40 +32,45 @@ pid = sys.argv[1]
 
 progUrl = 'http://www.bbc.co.uk/programmes/'+ pid +'.json'
 
-info = urllib.urlopen(progUrl).read()
+info = urllib.request.urlopen(progUrl).read()
 
 infoObj = json.loads(info)
 
-title = infoObj[u'programme'][u'title']
+title = infoObj['programme']['title']
 
-print 'Creating Word Cloud For ' + title
+print ('Creating Word Cloud For ',title)
 
 camelTitle = camelCase(title)
 
-for version in infoObj[u'programme'][u'versions'] :
-    pidText = version[u'pid']
+for version in infoObj['programme']['versions'] :
+    pidText = version['pid']
     pidUrl = 'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/' + pidText + '/proto/rtmp?cb=5'
-    extraInfo = urllib.urlopen(pidUrl).read()
-    extraTree = ET.fromstring(extraInfo)
-    captions = extraTree.findall('.//{http://bbc.co.uk/2008/mp/mediaselection}media[@kind=\'captions\']/{http://bbc.co.uk/2008/mp/mediaselection}connection')
-    for caption in captions:
-        urls.append(caption.get('href'))
+    try:
+        extraInfo = urllib.request.urlopen(pidUrl).read()
+        extraTree = ET.fromstring(extraInfo)
+        captions = extraTree.findall('.//{http://bbc.co.uk/2008/mp/mediaselection}media[@kind=\'captions\']/{http://bbc.co.uk/2008/mp/mediaselection}connection')
+        for caption in captions:
+            urls.append(caption.get('href'))
+    except:
+        pass
 
 #Assume the first url is fine
 
 url = urls[0]
 
-print 'Getting Subs from ' + url
+print ('Getting Subs from ' + url)
 
-soup = Soup(urllib.urlopen(url))
+soup = Soup(urllib.request.urlopen(url),features="html.parser")
 
-elements = select(soup,'p')
+elements = soup.select('p')
 
 for element in elements:
     for childElement in element.contents:
-	if isinstance(childElement, basestring):
-            text += childElement
-            text += ' '
+        grandChildElements = childElement.contents
+	    
+        if len(grandChildElements) > 0  and isinstance(grandChildElements[0], str):
+                text += grandChildElements[0]
+                text += ' '
 
 for filteredWord in filteredWords:
     text = text.replace(filteredWord,'')
